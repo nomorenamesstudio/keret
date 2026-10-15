@@ -36,3 +36,16 @@ node_modules/
 
 # misc
 .DS_Store
+
+# harness files: machine-local, mirrored to nomorenamesstudio/infra (never commit)
+/AGENTS.md
+/CLAUDE.md
+/.dsh/
+/.claude/
+/.cursor/
+/.codex/
+/.opencode/
+/.agents/
+/.clinerules
+/.cursorrules
+/.github/copilot-instructions.md
