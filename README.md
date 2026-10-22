@@ -1,155 +1,139 @@
-# Keret
+# Keret — A Free, FOSS Photo Wall Builder
 
-[![CI](https://github.com/nomorenamesstudio/keret/actions/workflows/ci.yml/badge.svg)](https://github.com/nomorenamesstudio/keret/actions/workflows/ci.yml)
-· MIT · Node 18.17+ · one dependency
+[![License: MIT](https://img.shields.io/badge/license-MIT-3fb950?style=for-the-badge)](LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-3fb950?style=for-the-badge)](CONTRIBUTING.md)
+[![Node 18.17+](https://img.shields.io/badge/node-18.17%2B-3fb950?style=for-the-badge)](docs/SETUP.md)
+[![CI](https://github.com/nomorenamesstudio/keret/actions/workflows/ci.yml/badge.svg?style=for-the-badge)](https://github.com/nomorenamesstudio/keret/actions/workflows/ci.yml)
 
 ![Keret: the wordmark inside a white frame outline, over the demo wall](docs/assets/readme-header.jpg)
 
-A self-hosted photo wall. Point it at a folder of photographs and it builds a
-single static page: every photo in its own frame on one big wall you pan and
-zoom, laid out so nothing overlaps and nothing is cropped.
+A free, open-source photo wall builder: point it at a folder of photographs and it
+writes one static page you pan and zoom, every photo in its own frame and nothing
+cropped.
 
-**[Open the live demo](https://nomorenamesstudio.github.io/keret/)** — 105
-photographs, every frame captioned with the camera data read out of the file.
+**[Open keret.app](https://keret.nomorenames.studio/)** — drop a folder in the
+browser, get the wall as a zip; nothing is uploaded.
+**[See a live wall](https://nomorenamesstudio.github.io/keret/)** — 105
+photographs, every frame captioned from the file's own EXIF.
 
-Named after the Hungarian word for *frame*. It began as the engine of a
-personal photo wall and is now a standalone tool anyone can run.
+## Why this exists
 
-- **Static output.** A folder of HTML, images and crawler files. No database, no
-  server-side runtime, no client framework.
-- **Originals are never published.** Every photo is re-encoded on the way out:
-  EXIF, including GPS, is dropped and orientation is baked in.
-- **One photo, one frame.** Frames keep the photo's real aspect ratio: nothing is
-  cropped to fit a grid.
-- **Built to survive a phone.** Pan, pinch, double-tap, fit - this engine was
-  debugged on real iOS hardware after a few hundred photos started killing the tab.
-- **Your typeface.** Geist Mono by default; Geist Sans, Geist Pixel, Crimson Text (serif)
-  or Crafty Girls (handwritten) with one key (`font` in
-  `wall.config.json`); both are copied into the build and served from your domain.
-- **Yours, credited.** A "Powered by Keret" line you can rewrite or remove, and a
-  photographer card in the corner for your own contact details.
-- **No JavaScript required to read it.** Without JS you get a plain list of the
-  photos; the wall is an enhancement.
+Every wall I tried was a CMS plugin I had to keep running, a grid that cropped my
+photographs to squares, or a hosted gallery that charged a subscription to show my
+own pictures. Keret is the engine of my own photo wall, pulled out into a tool:
+point it at a folder and it writes the page.
 
-![The demo wall in a browser window: framed photographs on a dark wall, with the hint, the credit line and the zoom controls along the bottom, and the Author button in the top right](docs/assets/demo-window.png)
+Named after the Hungarian word for *frame*.
+
+## What it does
+
+| | |
+| --- | --- |
+| **One photo, one frame** | Frames keep the photo's real aspect ratio, so nothing is cropped to fit a grid |
+| **Captions from the file** | Date, exposure, focal length and camera come out of the photo's own EXIF, with no metadata pass and no service |
+| **One big wall** | The whole wall is one canvas you pan and zoom; pinch, double-tap and the fit button work on a phone |
+| **A folder, not a server** | The build writes HTML, images and crawler files. No database, no PHP, no client framework |
+| **Originals stay private** | Every published copy is re-encoded, so EXIF including GPS is dropped and orientation is baked in |
+| **Your typeface** | Geist Mono by default; Geist Sans, Geist Pixel, Crimson Text or Crafty Girls with one config key, served from your own domain |
+| **Yours, credited** | A "Powered by Keret" line you can rewrite or remove, and a photographer card for your own contact details |
+| **Readable without JavaScript** | Without JS you get a plain list of the photographs; the wall is the enhancement |
 
 ## Quick start
 
 ```sh
-# 1. get the tool
 git clone https://github.com/nomorenamesstudio/keret.git
-cd keret
-npm install                      # sharp, the only dependency
+cd keret && npm install            # sharp, the only dependency
 
-# 2. build the bundled demo wall and look at it
-npm run demo
-npm run demo:serve               # http://127.0.0.1:3100/
-```
-
-Building your own wall:
-
-```sh
-mkdir -p ~/pictures/wall/photos
-cp ~/photos/*.jpg ~/pictures/wall/photos/
+mkdir -p ~/pictures/wall/photos     # put your photographs here
 cd ~/pictures/wall
-node ~/Code/keret/gen.js         # writes ./dist
-npx --yes serve dist             # or any static file server
+node ~/Code/keret/gen.js            # writes ./dist
+npx --yes serve dist                # or any static file server
 ```
 
-No config file is needed to start: on a terminal the first run asks a few questions
-(title, description, site URL, photographer) and writes `wall.config.json`; every
-later run offers to keep it. `--yes` turns the questions off, `--setup` brings them
-back, and without a terminal the defaults build `./photos` into `./dist`. Copy
-[`wall.config.example.json`](wall.config.example.json) when you would rather edit
-it by hand.
+1. The first run on a terminal asks four questions (title, description, site URL,
+   photographer) and writes `wall.config.json`; every later run offers to keep it.
+2. `--yes` never asks, `--setup` brings the questions back, `--check` lays the
+   wall out and writes nothing. Every flag is in [docs/API.md](docs/API.md).
+3. No terminal at all? [keret.app](https://keret.nomorenames.studio/) runs the same
+   build in a browser tab and hands you the finished site as a zip.
 
-## Put it online
+## How it works
 
-`dist/` is a folder of static files, so it goes anywhere: GitHub Pages, Cloudflare
-Pages, Netlify, or your own server behind nginx or Caddy. All four, with the
-custom domain steps, are in [docs/HOSTING.md](docs/HOSTING.md). Setting `siteUrl`
-before the final build is the one step that matters everywhere, because the
-canonical link, the social tags and the sitemap are built from it.
-
-## Two ways in
-
-`node gen.js` is the tool this project started as, and the one for scripts and
-build servers. [`web/`](web/) is for everyone else, live at
-**<https://keret.nomorenames.studio>**: a static page that runs the same build in
-the tab - drop a folder of photographs, watch it lay the wall out, preview it,
-download the finished site as a zip. No install, no server, nothing uploaded. It
-is not a fork: `web/vendor/keret-core.js` is generated from `src/`.
-
-![The browser builder, finished: five framed prints on a small wall, "105 photos on the wall", the wall's statistics, and the Download the site (.zip) button](docs/assets/app-window.png)
-
-The zip carries `wall.config.json` and `author.json` back with it - keret's own
-settings files, the ones the command line reads - so unzip it, drop in more
-photographs and build again to get the same wall back. The one trade-off is the
-encoder: the browser's own, so its output is not byte-identical to `node gen.js`.
-`npm run web:serve` serves the app locally on <http://127.0.0.1:3287/>.
-
-## Requirements
-
-- Node 18.17 or newer (Node 20+ recommended).
-- `sharp`, installed by `npm install`. It is not optional: it is what strips
-  metadata and bakes in EXIF orientation. The build refuses to run without it
-  rather than publishing originals.
-
-## Commands
-
-| Command | What it does |
-| --- | --- |
-| `node gen.js` | builds `./photos` into `./dist` |
-| `node gen.js --check` | lays the wall out, writes nothing |
-| `node gen.js --help` | every option |
-| `npm run demo` | rebuilds the bundled demo wall (`demo/dist`) |
-| `npm run demo:serve` | serves the demo on port 3100 |
-| `npm run demo:check` | structural check of a built wall |
-| `npm run seed` | writes sample images into `./photos` |
-| `npm test` | the suite (node's own runner) |
-
-## What the wall knows about each photo
-
-Sizes, EXIF orientation, capture date, camera and exposure are read straight from
-the file headers with zero dependencies, so the layout can be computed before
-anything is written and each frame matches exactly how a browser renders the
-photo.
-
-Captions are the exposure line and the camera. Both can be switched off, and a
-sidecar (`photos/captions.json`) supplies your own words per photo, taking over a
-line when a photo has no EXIF:
-
-```json
-{
-  "harbour-morning.jpg": {
-    "title": "Harbour, first light",
-    "credit": "Photo: Julia Caesar"
-  }
-}
+```
+photos/            your originals (never written to)
+wall.config.json   optional: identity, captions, wall geometry, image sizes, font
+author.json        optional: the photographer card
+        |
+        v
+   node gen.js     layout -> re-encode -> page -> stamp
+        |
+        v
+dist/              index.html, photos/, fonts/, og.jpg, robots.txt, sitemap.xml
 ```
 
-## Configuration
+Layout is computed from the file headers alone, so every frame matches how a
+browser renders that photo; the engine then draws one canvas and culls whatever is
+off screen. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the pipeline in full.
 
-Everything lives in `wall.config.json` in the directory you run the generator
-from: title, description, site URL, caption rules, the credit line, the geometry
-of the wall (column width, gutters, mats, margins), how large the served copies
-are, and an optional analytics snippet. Every key is documented in
-[docs/API.md](docs/API.md#configuration); the defaults live in
-[`src/config.js`](src/config.js).
+![The browser builder finishing a wall: framed prints, the wall's statistics, and the download button](docs/assets/app-window.png)
 
-Unknown keys are a hard error: a typo fails the build instead of being ignored.
+The browser builder is not a fork: `web/vendor/keret-core.js` is generated from
+`src/`, and the zip carries `wall.config.json` and `author.json` back with it, so
+unzip, add photographs and run `node gen.js` to get the same wall from the command
+line. The one trade-off is the encoder — the browser's own, so its output is not
+byte-identical to the CLI's.
+
+## FAQ
+
+### Is Keret really free?
+
+Yes. MIT licence, no account, no paid tier, no upsell. The only cost is hosting,
+and a static wall runs on a free tier.
+
+### Do my photographs get uploaded?
+
+No. The browser builder decodes them in the tab and builds the zip there; the CLI
+works on your own machine and writes a local folder.
+
+### Can I self-host the wall?
+
+Yes, and there is no server to host. The output is static files: commit them to
+GitHub Pages, drop the folder on Cloudflare Pages or Netlify, or `rsync` it to
+your own box. [docs/HOSTING.md](docs/HOSTING.md) walks through all four, custom
+domain included.
+
+### What do I need to run it?
+
+Node 18.17 or newer and one dependency, `sharp`. Sharp is not optional: it strips
+the metadata and bakes in EXIF orientation, and the build refuses to publish
+originals without it.
+
+### What happens to the GPS in my photos?
+
+It never reaches the page. Published copies are re-encoded without any metadata,
+and the GPS block in the source file is never parsed at all.
+
+### Is there AI in it?
+
+Not in the runtime: no model, no API key, no token cost: it is a static page. Keret
+is hand-written and AI-enhanced — the specification, design and review are mine,
+the code was written with DeepSeek V4.1 Flash in DeepSeek Harness, and
+[docs/CHANGELOG.md](docs/CHANGELOG.md) dates every change.
+
+### Who built it?
+
+K, under [No More Names Studio](https://nomorenames.studio). MIT licensed, source
+on GitHub, issues and pull requests welcome.
 
 ## The demo wall
 
-`demo/` is a complete wall: 105 photographs, their captions and the built site,
-committed so the demo builds offline and can be served by GitHub Pages. It is
-live at <https://nomorenamesstudio.github.io/keret/>.
+`demo/` is a complete wall — 105 photographs, their captions and the built site,
+committed so the demo builds offline and GitHub Pages can serve it. It is live at
+<https://nomorenamesstudio.github.io/keret/>.
 
 Every photograph is a Wikimedia Commons original that still carries its camera
-EXIF, so every frame shows the date, exposure and camera the engine read straight
-out of the file. They are committed at demo size (1000px, about 12 MB in total),
-and no frame was chosen to show a person. What the build publishes never carries
-that metadata: the served copies are re-encoded without it.
+EXIF, committed at demo size (1000px, about 12 MB) and chosen so that no frame
+shows a person. What the build publishes never carries that metadata.
 
 <!-- demo-credits:start -->
 Every photograph is CC0 1.0 or public domain. Photographs by Jebulon (8), GlacierNPS (7), Wilfredor (6), DimiTalen (5), Alex Liivet from Chester, United Kingdom (4), blmcalifornia (4), Mertbiol (4), Roc0ast3r (4), Perituss (2), Peter Cooper Jr. (2), Unknown (not credited) (2), plus 57 photographers with one frame each.
@@ -158,43 +142,26 @@ The full list, one row per file with its license and a link to the source page,
 is in [demo/CREDITS.md](demo/CREDITS.md).
 <!-- demo-credits:end -->
 
-## Privacy and safety
-
-- `sharp` is mandatory, so published copies never carry EXIF, GPS or embedded
-  thumbnails.
-- The GPS IFD in the source photos is never even parsed.
-- The build wipes its output directory. Before it does, it refuses to run when
-  the output would be the photos folder, the project root, or a non-empty
-  directory that does not look like a previous build (unless `--force`).
-- A photo that cannot be published fails the build; the page is never written
-  with a frame pointing at a missing file.
-
-Details in [SECURITY.md](SECURITY.md).
-
 ## Documentation
 
-Start at [docs/INDEX.md](docs/INDEX.md). The short version:
-[SETUP.md](docs/SETUP.md) to run it, [API.md](docs/API.md) for the CLI and every
-config key, [HOSTING.md](docs/HOSTING.md) to put it online,
-[ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the build and the engine fit
-together.
-
-## Built with AI
-
-Keret is hand-written and AI-enhanced. Krisztian owns the specification, the
-design decisions and the review; the code was written with **DeepSeek V4.1 Flash
-in DeepSeek Harness**, under a documented method: every claim in these docs is
-backed by a command in the repository, the tests are the contract, and the review
-that drove the extraction from the original site is preserved in the git history
-and [docs/CHANGELOG.md](docs/CHANGELOG.md) - so a reader can see which parts came
-from where.
+[docs/INDEX.md](docs/INDEX.md) routes everything: [SETUP](docs/SETUP.md) to run
+it, [API](docs/API.md) for the CLI and every config key, [HOSTING](docs/HOSTING.md)
+to put it online, [ARCHITECTURE](docs/ARCHITECTURE.md) for how it fits together,
+[SECURITY](SECURITY.md) for the guard rails that keep the build from eating your
+originals.
 
 ## Contributing
 
-Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) has the
-ground rules and the checks to run before opening one; the project follows the
-[code of conduct](CODE_OF_CONDUCT.md).
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md) and the [code of conduct](CODE_OF_CONDUCT.md).
+2. Run `npm test` before opening a pull request; the suite is the contract.
+3. Keep the scope tight: keeping each frame's own aspect ratio is the whole point,
+   so a change that crops, buckets or "improves" the layout needs a reason first.
 
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+[![Star this repo](https://img.shields.io/badge/star-this%20repo-e23c30?style=for-the-badge&logo=github)](https://github.com/nomorenamesstudio/keret)
+
+Built by [K](https://nomorenames.studio) | [keret.app](https://keret.nomorenames.studio/) ·
+[No More Names Studio](https://nomorenames.studio)
