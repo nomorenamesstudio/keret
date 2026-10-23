@@ -1,0 +1,502 @@
+/*
+ * landing.css - the site's front page.
+ *
+ * The builder is no longer the page: it lives at /app/, and this page sells it.
+ * The tokens are the wall page's own (copied, like app.css does, so the two
+ * cannot drift): same warm wall, same mat, same caption ink, same accent. One
+ * difference matters: on the wall, --cap is the caption ink for text sitting on
+ * the mat, and it measures 1.67:1 against the wall itself - so nothing on this
+ * page uses --cap for text. Body copy is --note.
+ */
+
+/* The face the page names, shipped rather than hoped for. Geist Mono is not an
+   operating system font: without this, every visitor saw ui-monospace and the
+   landing looked like a different design (measured 2026-10-22 - the text
+   measured exactly as wide as ui-monospace, and document.fonts was empty). This
+   is the same variable woff2 the walls embed, from this domain, weight range
+   matching src/config.js. */
+@font-face {
+  font-family: "Geist Mono";
+  src: url(fonts/GeistMonoVF.woff2) format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+:root {
+  --wall: #cfc8ba;
+  --ink: #f2eee4;
+  --note: #4a443a;
+  --mat: #fbfaf6;
+  --accent: #e23c30;
+  --band: #d6cfc0;
+  --line: rgba(25, 22, 18, .14);
+  --line-soft: rgba(25, 22, 18, .1);
+  --tint: rgba(25, 22, 18, .06);
+  --shadow: 0 2px 4px rgba(0, 0, 0, .14), 0 14px 32px rgba(0, 0, 0, .18);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --wall: #26231e;
+    --ink: #e8e4d8;
+    --note: #d5cfc2;
+    --mat: #c7bfab;
+    --band: #1f1c17;
+    --line: rgba(255, 255, 255, .12);
+    --line-soft: rgba(255, 255, 255, .08);
+    --tint: rgba(255, 255, 255, .07);
+    --shadow: 0 2px 6px rgba(0, 0, 0, .45), 0 18px 40px rgba(0, 0, 0, .5);
+  }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: var(--wall);
+  color: var(--note);
+  font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 1rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; }
+
+.wrap { width: min(1080px, calc(100% - 40px)); margin: 0 auto; }
+
+/* --- header ------------------------------------------------------------ */
+
+/* full-bleed bar, wrapped content: the background and the hairline run the whole
+   width of the window while the brand and the nav stay on the page grid */
+.site-head {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--wall);
+  border-bottom: 1px solid var(--line-soft);
+}
+.site-head-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--note);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: .02em;
+  text-decoration: none;
+}
+.brand .mark {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: #26231e;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14);
+}
+.brand .mark::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.site-nav { display: flex; align-items: center; gap: 18px; font-size: 0.8125rem; }
+.site-nav a { color: var(--note); text-decoration: none; }
+.site-nav a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.nav-link { display: inline-flex; align-items: center; gap: 7px; }
+.nav-link svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+
+/* --- hero -------------------------------------------------------------- */
+
+/* the hero sits on its own band, a shade away from the page, so it reads as the
+   first screen rather than the top of a long list */
+.hero-band {
+  /* the global section rule would add 56px of padding and a top rule here */
+  padding: 0;
+  border-top: 0;
+  background: var(--band);
+  border-bottom: 1px solid var(--line-soft);
+}
+/* a phone-shaped shot, not a wide one: the wall is tall, and a narrow picture
+   leaves the words the room they need */
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  align-items: center;
+  gap: 56px;
+  padding: 14px 0 18px;
+}
+.eyebrow {
+  color: var(--note);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+.hero h1 {
+  margin-top: 14px;
+  color: var(--note);
+  font-size: clamp(1.75rem, 3.4vw, 2.75rem);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -.01em;
+}
+.hero h1 em { color: var(--accent); font-style: normal; }
+.hero .lede {
+  max-width: 34rem;
+  margin-top: 18px;
+  font-size: 1rem;
+  line-height: 1.7;
+}
+.hero .lede { text-wrap: pretty; }
+.hero .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 26px; }
+.hero .tiny { margin-top: 16px; color: var(--note); font-size: 0.75rem; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--note);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.btn:hover { background: var(--tint); }
+.btn.primary {
+  border-color: transparent;
+  /* #e23c30 with white text measures 4.27:1, just under AA for 14px; this is the
+     same hue two steps deeper and passes at 4.79:1 */
+  background: #d63429;
+  color: #fff;
+}
+.btn.primary:hover { background: #c9332a; }
+.btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+
+/* One browser frame for every screenshot on the page: three dots and a hairline,
+   nothing else. No address bar, because the wall is not a page you navigate to. */
+.frame {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #16130f;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.frame-bar {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, .09);
+}
+.frame-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .22);
+}
+.frame img { display: block; width: 100%; height: auto; }
+
+/* the phone: a bezel, nothing else */
+.frame-phone {
+  padding: 7px;
+  border-radius: 28px;
+  border: 1px solid var(--line);
+  background: #16130f;
+  box-shadow: var(--shadow);
+}
+.frame-phone img { display: block; width: 100%; height: auto; border-radius: 21px; }
+
+/* The hero picture is one frame of the product, whole: the mat, the caption
+   printed from EXIF, and the wall's own zoom controls. A phone gets the portrait
+   frame, a desktop the landscape one, so the subject is never cut in half. */
+.hero-shot {
+  margin: 0;
+  align-self: end;
+  position: relative;
+  z-index: 1;
+  /* hangs into the section below instead of stopping at the band edge: the mock
+     is the thing you click, so it is allowed to cross the line */
+  transform: translateY(60px);
+}
+.hero-shot img { display: block; width: 100%; height: auto; }
+
+/* The whole wall, edge to edge: scale is the argument here, so it takes the
+   page's full width instead of sitting in a column. */
+.band { margin: 48px 0 0; }
+.band img { display: block; width: 100%; height: auto; }
+
+/* --- sections ---------------------------------------------------------- */
+
+section { padding: 56px 0; border-top: 1px solid var(--line-soft); }
+
+/* a section whose text holds still while its screenshots scroll past: the pattern
+   the FAQ intro uses on juuku (sticky, 24px from the top) */
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, .82fr) minmax(0, 1.18fr);
+  gap: 56px;
+  align-items: start;
+}
+.split-aside { position: sticky; top: 24px; max-width: 30rem; }
+.split-aside h2 {
+  color: var(--note);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+}
+.aside-lede { margin-top: 14px; font-size: 0.9375rem; }
+.split-aside p + p { margin-top: 14px; font-size: 0.9375rem; }
+.split-body { display: grid; gap: 26px; }
+/* the builder itself, at the broken-in state: the card is the whole picture */
+.app-shot { display: block; width: 100%; height: auto; }
+
+/* each way to run it is a row: its words on the left, its own artefact on the
+   right, both artefacts the same width so the two rows line up */
+.way {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 560px;
+  gap: 40px;
+  align-items: start;
+  margin-top: 34px;
+}
+.way + .way { margin-top: 44px; padding-top: 40px; border-top: 1px solid var(--line-soft); }
+.way-copy { max-width: 34rem; position: sticky; top: 84px; }
+.way-copy p { font-size: 0.9375rem; }
+.way-copy p + p { margin-top: 14px; }
+.way-copy code { padding: 1px 4px; border-radius: 3px; background: var(--tint); font-size: 0.875rem; }
+.way-link { margin-top: 18px; }
+.way-visual { min-width: 0; }
+.split-body .figure { margin-top: 0; }
+section > .wrap > h2,
+.section-head h2 {
+  color: var(--note);
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -.01em;
+}
+.section-head { display: grid; gap: 10px; max-width: 44rem; }
+.section-head p + p,
+.why p + p,
+.section-head p { font-size: 0.9375rem; }
+h3 { color: var(--note); font-size: 1rem; font-weight: 600; }
+
+/* the story, then the wall it produced: the claim and its proof in one section */
+.why {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: 56px;
+  align-items: center;
+}
+.why-more { margin-top: 16px; font-size: 0.9375rem; }
+.why .section-head { max-width: none; }
+/* a one-line sketch of the wall: frames of different shapes, gathered into a
+   cloud. The same drawing language as the app's own glyphs. */
+.why-art { color: var(--note); opacity: .5; }
+.why-art svg { display: block; width: 100%; height: auto; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 26px 28px;
+  margin-top: 28px;
+  list-style: none;
+}
+.cards li { display: grid; gap: 6px; align-content: start; }
+.cards p { font-size: 0.875rem; line-height: 1.6; }
+/* one thin stroke glyph per card, in the accent: the same drawing language as the
+   app's own icons */
+.cards h3 { display: flex; align-items: center; gap: 9px; }
+.cards h3 svg { width: 15px; height: 15px; flex: 0 0 auto; color: var(--accent); }
+
+.two-up { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 44px; align-items: start; }
+.two-up.flip { grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+
+
+/* the install command: a terminal card with a copy button, the way juicebox's
+   self-host block works - a label, the command, nothing to decode */
+.cmd {
+  margin-top: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--tint);
+  overflow: hidden;
+}
+.cmd-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.cmd-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: none;
+  color: var(--note);
+  font: inherit;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.cmd-tab:hover { border-color: var(--line); }
+.cmd-tab.is-on { border-color: var(--line); background: var(--tint); }
+.cmd-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.cmd-tab svg { width: 13px; height: 13px; flex: 0 0 auto; }
+.cmd-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  padding: 3px 9px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: none;
+  color: var(--note);
+  font: inherit;
+  font-size: 0.6875rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.cmd-copy svg { width: 12px; height: 12px; flex: 0 0 auto; }
+.cmd-copy:hover { background: var(--tint); }
+.cmd-copy.done { border-color: var(--accent); color: var(--note); }
+.cmd pre {
+  margin: 0;
+  padding: 14px 16px;
+  overflow-x: auto;
+}
+.cmd code {
+  color: var(--note);
+  font-family: inherit;
+  font-size: 0.8125rem;
+  line-height: 1.9;
+}
+.cmd .c { opacity: .55; }
+
+/* a screenshot that belongs to the page rather than floating in a column */
+.figure { margin-top: 26px; text-align: center; }
+.figure img { display: block; width: 100%; height: auto; }
+.figure-phone { width: min(380px, 100%); margin-inline: auto; }
+.figure-phone .frame-phone { width: 100%; }
+
+
+.facts { display: grid; gap: 12px; margin-top: 20px; list-style: none; }
+.facts li { display: grid; grid-template-columns: 1.1rem 1fr; gap: 10px; font-size: 0.875rem; }
+.facts svg { width: 1rem; height: 1rem; margin-top: 3px; color: var(--accent); }
+
+/* the phone stands on the same line as its copy, never floating */
+.phone-shot { display: grid; justify-items: center; }
+.phone-shot img {
+  /* the shot is a tall portrait: cap the height, or it drags the whole section
+     down and leaves the copy stranded beside a column of phone */
+  width: auto;
+  max-width: min(300px, 70vw);
+  max-height: 520px;
+}
+
+/* --- faq --------------------------------------------------------------- */
+
+.faq { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 44px; align-items: start; }
+/* the heading holds still while the answers scroll, the same way the copy beside
+   the builder shot does */
+.faq .section-head { position: sticky; top: 84px; }
+.faq details { border-bottom: 1px solid var(--line-soft); }
+.faq summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 15px 0;
+  color: var(--note);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+/* the native triangle, replaced with the chevron the rest of the page uses */
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::marker { content: ""; }
+.faq .chev {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  color: var(--accent);
+  transition: transform .18s ease;
+}
+.faq details[open] .chev { transform: rotate(180deg); }
+.faq details p { padding: 0 0 14px; font-size: 0.875rem; line-height: 1.65; }
+
+/* --- closing cta + footer --------------------------------------------- */
+
+.closing { text-align: center; padding: 72px 0; }
+.closing h2 {
+  color: var(--note);
+  font-size: clamp(1.375rem, 2.4vw, 2rem);
+  font-weight: 600;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+}
+.closing p { max-width: 34rem; margin: 14px auto 0; font-size: 0.9375rem; }
+.closing .actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; margin-top: 26px; }
+
+.site-foot {
+  padding: 26px 0 40px;
+  border-top: 1px solid var(--line);
+  font-size: 0.75rem;
+  line-height: 1.9;
+  text-align: center;
+}
+.site-foot a { color: var(--note); text-underline-offset: 3px; }
+.site-foot p { margin: 0; }
+.site-foot .links { display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; }
+/* the studio credit: the heart is the accent, the size of a lowercase x-height */
+.site-foot .credit { display: flex; align-items: center; justify-content: center; gap: 4px; }
+.site-foot .heart { width: 11px; height: 11px; flex: 0 0 auto; color: var(--accent); }
+
+/* --- narrow ------------------------------------------------------------ */
+
+@media (max-width: 900px) {
+  .hero, .why, .two-up, .two-up.flip, .faq, .split { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .way { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .why { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .faq .section-head { position: static; }
+  .why-art { width: 160px; order: -1; }
+  .way-copy { max-width: none; }
+  .split-aside { position: static; max-width: none; }
+  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hero { padding-top: 34px; grid-template-columns: minmax(0, 1fr); }
+  /* on a phone the next heading is full width, so the mock stops at its own band */
+  .hero-shot { width: min(240px, 100%); margin: 0 auto; align-self: center; transform: none; }
+}
+@media (max-width: 620px) {
+  .cards { grid-template-columns: minmax(0, 1fr); }
+  /* the clone URL is wider than a phone. It scrolls instead of wrapping, because
+     a URL split across two lines is a URL nobody can check - and the Copy button
+     above it is how anyone gets the command out of here anyway. */
+  .cmd pre { overflow-x: auto; scrollbar-width: thin; }
+
+  section { padding: 40px 0; }
+}

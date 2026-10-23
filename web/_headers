@@ -6,6 +6,8 @@
 # card is harmless, a stale stylesheet is not.
 /app.css
   Cache-Control: public, max-age=0, must-revalidate
+/landing.css
+  Cache-Control: public, max-age=0, must-revalidate
 /app.js
   Cache-Control: public, max-age=0, must-revalidate
 /keret-runtime.js

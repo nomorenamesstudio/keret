@@ -151,7 +151,7 @@ test('the zip writer produces an archive a reader can walk', async () => {
 
 test('the browser app parses, and is wired to the page it ships with', () => {
   const app = fs.readFileSync(path.join(ROOT, 'web', 'app.js'), 'utf8');
-  const html = fs.readFileSync(path.join(ROOT, 'web', 'index.html'), 'utf8');
+  const html = fs.readFileSync(path.join(ROOT, 'web', 'app', 'index.html'), 'utf8');
 
   // It has to parse at all: an edit that eats half a function is invisible to the
   // rest of this suite (the bundle is generated from src/, which app.js is not).
@@ -190,27 +190,83 @@ test('the browser app parses, and is wired to the page it ships with', () => {
     'web/app.js reaches for an id the page does not have');
 });
 
-test('the deploy step versions the assets, and what it writes can be loaded', () => {
-  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'keret-version-'));
-  const copies = ['index.html', 'hosting.html', '404.html', 'app.css', 'app.js',
-    'keret-runtime.js', 'canvas-sharp.js', 'zip.js'];
-  for (const name of copies) fs.copyFileSync(path.join(ROOT, 'web', name), path.join(scratch, name));
-  fs.cpSync(path.join(ROOT, 'web', 'vendor'), path.join(scratch, 'vendor'), { recursive: true });
+test('the run-it-yourself card can be copied, with or without the Clipboard API', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'web', 'index.html'), 'utf8');
+  const copy = fs.readFileSync(path.join(ROOT, 'web', 'copy.js'), 'utf8');
 
-  execFileSync(process.execPath, [path.join(ROOT, 'web', 'version-assets.mjs'), scratch, 'testsha'], { stdio: 'pipe' });
+  assert.doesNotThrow(() => new vm.Script(copy), 'web/copy.js must parse');
 
-  // the pages point at the versioned copies
-  const index = fs.readFileSync(path.join(scratch, 'index.html'), 'utf8');
-  assert.match(index, /src="vtestsha\/app\.js"/);
-  assert.match(index, /href="vtestsha\/app\.css"/);
+  // The button has to ship visible: navigator.clipboard is undefined on
+  // http://<lan-ip>, so a phone opening the site there got no button at all when
+  // the script hid it. Measured on the LAN address, 2026-10-21.
+  const button = html.match(/<button[^>]*data-copy-panel[^>]*>/);
+  assert.ok(button, 'the landing ships a copy button');
+  assert.equal(/\shidden(\s|>)/.test(button[0]), false, 'the copy button ships visible');
+  assert.match(copy, /execCommand\('copy'\)/, 'and falls back to a selection copy');
+
+  // two ways to run it: the terminal, and an agent that asks the questions
+  assert.match(html, /id="panel-terminal"[\s\S]*?id="panel-agent"/, 'both panels ship');
+  const agentTab = html.match(/<button[^>]*data-tab="panel-agent"[^>]*>([\s\S]*?)<\/button>/);
+  assert.ok(agentTab, 'the agent tab ships');
+  assert.equal(agentTab[1].replace(/<[^>]+>/g, '').trim(), 'AI agent',
+    'and the agent tab is labelled, icon or no icon');
+  assert.match(copy, /data-copy-panel|activeCode/, 'the copy button follows the active tab');
+});
+
+test('a deploy ships everything its pages reference, with the assets stamped', () => {
+  const scratch = fs.mkdtempSync(path.join(os.tmpdir(), 'keret-deploy-'));
+  const run = (name, sha) => {
+    const out = path.join(scratch, name);
+    const env = { ...process.env };
+    if (sha === undefined) delete env.CF_PAGES_COMMIT_SHA; else env.CF_PAGES_COMMIT_SHA = sha;
+    execFileSync(process.execPath, [path.join(ROOT, 'web', 'deploy.mjs'), out], { stdio: 'pipe', env });
+    return out;
+  };
+
+  const dist = run('stamped', 'testsha');
+
+  // the landing points at its versioned stylesheet, the builder at its own files,
+  // one directory up because it sits at /app/
+  const index = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
+  assert.match(index, /href="vtestsha\/landing\.css"/);
+  assert.match(index, /src="vtestsha\/copy\.js"/);
+  const app = fs.readFileSync(path.join(dist, 'app', 'index.html'), 'utf8');
+  assert.match(app, /src="\.\.\/vtestsha\/app\.js"/);
+  assert.match(app, /href="\.\.\/vtestsha\/app\.css"/);
   for (const page of ['hosting.html', '404.html']) {
-    assert.match(fs.readFileSync(path.join(scratch, page), 'utf8'), /href="vtestsha\/app\.css"/);
+    assert.match(fs.readFileSync(path.join(dist, page), 'utf8'), /href="vtestsha\/app\.css"/);
   }
 
-  // and every module the versioned scripts import relative to themselves is there,
-  // which is the failure a hand-maintained copy list invites
+  // Everything the pages ask for exists in what the deploy ships. This is the
+  // contract that broke on 2026-10-22: the Cloudflare build copied a hand-written
+  // list, the landing started asking for landing.css, copy.js, shots/ and app/,
+  // and none of the four were in it - a deploy that is green and a page that
+  // arrives unstyled, with no images, and with its main button 404ing.
+  for (const page of ['index.html', 'app/index.html', 'hosting.html', '404.html']) {
+    const html = fs.readFileSync(path.join(dist, page), 'utf8');
+    const local = [...html.matchAll(/(?:href|src)="([^"]*)"/g)]
+      .map((match) => match[1])
+      .filter((ref) => ref && !/^(?:[a-z]+:|\/\/|#)/i.test(ref));
+    const missing = local.filter((ref) => !fs.existsSync(path.join(dist, path.dirname(page), ref)));
+    assert.deepEqual(missing, [], page + ' asks for files the deploy does not ship');
+  }
+
+  // The stylesheets resolve their own urls, so a font that is left out of the
+  // deploy is not a 404 anybody sees: the page silently paints the fallback
+  // face. Both copies are checked, the plain one and the stamped one, because a
+  // stamped stylesheet resolves url() against v<sha>/ instead of the root.
+  for (const sheet of ['landing.css', 'app.css', 'vtestsha/landing.css', 'vtestsha/app.css']) {
+    const css = fs.readFileSync(path.join(dist, sheet), 'utf8');
+    const urls = [...css.matchAll(/url\(([^)]+)\)/g)].map((match) => match[1].replace(/['"]/g, ''));
+    const missing = urls.filter((url) => !/^(?:[a-z]+:|\/\/|data:)/i.test(url)
+      && !fs.existsSync(path.join(dist, path.dirname(sheet), url)));
+    assert.deepEqual(missing, [], sheet + ' asks for a file the deploy does not ship');
+  }
+
+  // and the versioned directory carries every module the scripts import, which is
+  // the failure a hand-maintained copy list invites
   for (const name of ['app.js', 'keret-runtime.js', 'canvas-sharp.js', 'zip.js']) {
-    const file = path.join(scratch, 'vtestsha', name);
+    const file = path.join(dist, 'vtestsha', name);
     const source = fs.readFileSync(file, 'utf8');
     assert.equal(source, fs.readFileSync(path.join(ROOT, 'web', name), 'utf8'),
       name + ' must be copied through unchanged');
@@ -220,13 +276,11 @@ test('the deploy step versions the assets, and what it writes can be loaded', ()
     }
   }
 
-  // no version (a local build) must change nothing at all
-  const plain = fs.mkdtempSync(path.join(os.tmpdir(), 'keret-plain-'));
-  fs.copyFileSync(path.join(ROOT, 'web', 'index.html'), path.join(plain, 'index.html'));
-  execFileSync(process.execPath, [path.join(ROOT, 'web', 'version-assets.mjs'), plain, ''], { stdio: 'pipe' });
-  assert.match(fs.readFileSync(path.join(plain, 'index.html'), 'utf8'), /href="app\.css"/);
-  assert.deepEqual(fs.readdirSync(plain), ['index.html']);
+  // a local build carries no stamp, so it must not point at a versioned directory
+  const plain = run('plain', undefined);
+  assert.match(fs.readFileSync(path.join(plain, 'index.html'), 'utf8'), /href="landing\.css"/);
+  const shipped = fs.readdirSync(path.join(plain, 'shots')).filter((name) => name.endsWith('.jpg'));
+  assert.ok(shipped.length >= 3, 'the screenshots ship locally too');
 
   fs.rmSync(scratch, { recursive: true, force: true });
-  fs.rmSync(plain, { recursive: true, force: true });
 });

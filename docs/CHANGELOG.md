@@ -1,5 +1,67 @@
 # Changelog
 
+## 2026-10-22 - a front page, and the builder behind it
+
+`[Feature]` **keret has a landing page.** Without one, the front door was the app itself: a
+first-time visitor got a drop zone and a wordmark, and no answer to "what is this, who is it
+for, and what does it cost". `/` is now a page that answers those in the first screen, and the
+builder lives at `/app/` - the same generator, unchanged, one directory down.
+
+The page is one argument, in this order: the hero (what it is, what it costs, the two calls to
+action, the privacy line), **One canvas, the whole wall** as a full-width band, **What your wall
+gets** as four capabilities, the origin story in two sentences, **Two ways to run it** (the
+terminal command and an AI-agent prompt as tabs, with a Copy button), what a wall does on a
+phone, four FAQ answers, and the closing call to action. The comparison table, the `dist/`
+listing, the six-card catalogue, the typeface and credit cards, the duplicate three-step
+section and the implementation history all went: nine sections made the same five claims, and
+the page read as a specification rather than a pitch.
+
+`[Feature]` **A one-line frame cloud beside the origin story.** Twelve frame outlines of mixed
+proportions in a stepped disc, mirrored around the centre, with one 5-unit gutter throughout so
+no two frames touch and no gap is a different size from its neighbour. Two drawings were
+specified from the outside before one shipped (a uniform 17-frame lattice was the other
+candidate); the varied aspect ratios won because they carry the product's actual claim.
+
+`[Fix]` **Every image is the product, shot once.** The first cut had five screenshots in three
+frame styles - browser chrome three times over with the same fake address bar, a phone bezel
+twice, a bare wall once - and two of them were not what their captions said. Now: a wall at 27%
+in the hero (the product is a wall generator, so the hero shows a wall), the whole wall at 8%
+as a full-width band, and a phone at 48% where the frames fill the screen. All from
+`jpg.krisztian.wtf`, all at 2-3x the size they display at, and the social card is the same wall
+at 1200x630.
+
+`[Feature]` **Two blocks of structured data and an `llms.txt`.** `SoftwareApplication` names the
+price, the licence and the repository; `FAQPage` repeats the five answers word for word, which
+is the condition for the schema being honest rather than aspirational. `web/llms.txt` gives a
+model three sentences and seven links. `robots.txt` allows everything and says which two pages
+exist now; `sitemap.xml` gained `/app/`.
+
+`[Fix]` **The Cloudflare build command could not ship this page.** It carried a hand-written
+`cp` list from when the site was one HTML file, so `landing.css`, `copy.js`, `shots/` and `app/`
+were not in it: a green deploy, then a visitor arriving to an unstyled page whose screenshots
+404 and whose main button goes nowhere. The list lives in `web/deploy.mjs` now - one command in
+the Pages setting (`node deploy.mjs`), reviewable in the repository - and `test/web.test.js`
+runs it, then checks every local reference its four pages make against what was written. The
+test that guarded the stamp used to build its own scratch copy with its own file list, which is
+how the two lists could disagree without anything failing.
+
+`[Fix]` **The copy button works without the Clipboard API.** `navigator.clipboard` is undefined
+on `http://<lan-ip>`, so a phone opening the site over the LAN got no button at all when the
+script hid it. The button ships visible and falls back to a selection copy, then to selecting
+the command itself.
+
+`[Fix]` **The site finally ships the typeface it declares.** Every page names `"Geist Mono"`
+first and no page loaded it, so visitors read the whole site in `ui-monospace` - measured
+2026-10-22: the heading measured exactly as wide as `ui-monospace`, and `document.fonts` was
+empty. `web/fonts/GeistMonoVF.woff2` is the same variable face the walls embed, declared in
+`landing.css` and `app.css`, so the landing, the builder, the hosting guide and the 404 read in
+the type they always meant. Nothing is fetched from anyone else's server, and the file ships
+inside the stamped directory so a cached stylesheet still finds it.
+
+`[Fix]` Links that pointed at the old single-page shape: `404.html` offers `/app/` and `/`, the
+hosting guide's "back to the wall builder" goes to `app/`, the builder's wordmark goes to the
+front page, and `/app/`'s `og:url` names its own URL instead of the site root.
+
 ## 2026-10-15 - the account rename
 
 `[Fix]` The GitHub account moved from `krisztianhadi` to `nomorenamesstudio`, so every link the

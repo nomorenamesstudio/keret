@@ -262,7 +262,17 @@ needs. `web/` has no dependencies and no build step beyond the generated bundle,
 so deploying it is copying the folder to any static host - which, today, is a
 Cloudflare Pages project whose root directory is `web/`. Pointed at the repo root,
 Pages would install the CLI's `sharp` on every build for a bundle that needs none.
-`docs/SETUP.md` carries the exact build command and the post-deploy checks.
+`web/deploy.mjs` is the copy step: the file list is in the repository, where it can
+be reviewed and tested, and `docs/SETUP.md` carries the project settings and the
+post-deploy checks.
+
+`web/` is two pages, not one. `/` is the landing - what keret is, how it compares,
+the FAQ - and `/app/` is the builder, which is the same generator this section
+describes. The split is a directory, not an abstraction: the landing has its own
+stylesheet (`landing.css`), its own script (`copy.js`, the tabs and the copy
+button) and no import of the engine, while `app/index.html` loads `app.css`,
+`app.js` and the bundle one level up. That makes the landing a static page a
+crawler can read without running any of the code that builds a wall.
 
 ### The app's own decisions
 

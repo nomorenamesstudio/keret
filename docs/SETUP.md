@@ -134,15 +134,28 @@ npm run web:check     # fail if the bundle no longer matches src/
 npm run web:serve     # http://127.0.0.1:3287/
 ```
 
-The bundle is committed, so deploying the app is copying `web/` to any static
-host - GitHub Pages, Cloudflare Pages, a subfolder of your own site. Nothing runs
-server-side, and nothing the user picks is uploaded: the photos are read with the
-File API, re-encoded on a canvas, and the finished site is handed back as a zip.
+The bundle is committed, so deploying the site is copying `web/` to any static
+host - GitHub Pages, Cloudflare Pages, a subfolder of your own site - and the
+script that does it is `web/deploy.mjs`:
+
+```sh
+node web/deploy.mjs                                        # writes web/dist, unstamped
+CF_PAGES_COMMIT_SHA=abc123 node web/deploy.mjs /tmp/dist   # what a deploy writes
+```
+
+It rebuilds the bundle, copies the files and directories an explicit list names,
+then runs `version-assets.mjs`. Nothing runs server-side, and nothing the user
+picks is uploaded: the photos are read with the File API, re-encoded on a canvas,
+and the finished site is handed back as a zip.
 
 `test/web.test.js` fails when the bundle is stale, so `npm run web:build` is not
 optional after touching `gen.js` or `src/`. It also fails when `web/app.js` stops
 parsing or reaches for an element the page does not have - the two failure modes
-that make the page load but do nothing.
+that make the page load but do nothing - and it runs `web/deploy.mjs` and checks
+that every file the deployed pages reference is in what it wrote. That last check
+is not hypothetical: the landing asks for `landing.css`, `copy.js`, `shots/` and
+`app/`, and a deploy that forgets any of them ships a page with no style, no
+screenshots and a 404 behind its main button.
 
 ### The hosted app
 
@@ -153,27 +166,34 @@ no local deploy step or secret to keep.
 | Setting | Value |
 | --- | --- |
 | Root directory | `web` |
-| Build command | `node build.mjs && mkdir -p dist && cp index.html hosting.html _headers app.css app.js keret-runtime.js canvas-sharp.js zip.js 404.html robots.txt sitemap.xml og.png apple-touch-icon.png dist/ && cp -r vendor dist/ && node version-assets.mjs dist "$CF_PAGES_COMMIT_SHA"` |
+| Build command | `node deploy.mjs` |
 | Output directory | `dist` |
+
+The site is two pages: `/` is the landing, `/app/` is the builder, and
+`hosting.html` and `404.html` sit beside them. The file list lives in
+`web/deploy.mjs` because a list inside a Cloudflare setting is neither reviewable
+nor testable - the inline `cp` command it replaced stopped matching the site the
+day the landing arrived.
 
 The studio's own deploy appends one more step to that command: if an
 `ANALYTICS_TAG` environment variable is set on the project, it is written into
-`dist/index.html` and `dist/404.html` before `</head>`, and preview branches skip
-it. The tag counts pageviews and finished builds, is served from the studio's own
-domain, and carries `data-do-not-track="true"` — a visitor who sends that signal
-is not counted at all. The tag (a self-hosted analytics beacon) lives in the Pages project's
-environment, deliberately not in this repo — cloning this repository and pointing
-your own Pages project at it deploys the app with no tracking at all.
+`dist/index.html`, `dist/app/index.html` and `dist/404.html` before `</head>`, and
+preview branches skip it. The tag counts pageviews and finished builds, is served
+from the studio's own domain, and carries `data-do-not-track="true"` — a visitor
+who sends that signal is not counted at all. The tag (a self-hosted analytics
+beacon) lives in the Pages project's environment, deliberately not in this repo —
+cloning this repository and pointing your own Pages project at it deploys the app
+with no tracking at all.
 
 The root directory is the point: pointed at the repository root, Pages installs
 the CLI's `sharp` on every build for an app that has no dependencies at all. The
-build command runs `web/build.mjs --check`'s generator for real, so what ships is
-built from the commit rather than from a possibly stale committed bundle; `npm
-test` is what catches a stale bundle before it gets there.
+build command regenerates the bundle for real, so what ships is built from the
+commit rather than from a possibly stale committed bundle; `npm test` is what
+catches a stale bundle before it gets there.
 
-Every deploy also copies the app's assets into `dist/v<commit>/` and points the HTML
-at that directory (`web/version-assets.mjs`), so a browser that has been holding
-`app.css` since the last deploy fetches the new one instead of mixing it with new
+Every deploy also copies the site's stylesheets and scripts into `dist/v<commit>/` and
+points the HTML at that directory (`web/version-assets.mjs`), so a browser that has been
+holding `app.css` since the last deploy fetches the new one instead of mixing it with new
 markup. That directory is served `immutable` for a year; the unversioned copies stay
 in place for anyone holding a cached page, and `web/_headers` keeps them
 revalidating. Locally, `node version-assets.mjs dist` with no version is a no-op, so
@@ -186,6 +206,15 @@ T=$(cat ~/Code/.config/cloudflare/pages.token); A=d6c73c1ae5be6d50645e7db1723d29
 curl -s -H "Authorization: Bearer $T" \
   "https://api.cloudflare.com/client/v4/accounts/$A/pages/projects/keret/deployments?per_page=1" \
   | jq -c '.result[0] | {commit: .deployment_trigger.metadata.commit_hash[0:7], stage: .latest_stage.name, status: .latest_stage.status}'
+```
+
+Then read what the edge actually serves, because a landing page is worthless if it
+ships `noindex` - the classic launch bug, and Cloudflare can add or rewrite headers
+invisibly:
+
+```sh
+curl -sI https://keret.nomorenames.studio/ | grep -i 'x-robots-tag'   # must print nothing
+curl -s https://keret.nomorenames.studio/ | grep -c 'ld+json'         # 2: the app and the FAQ
 ```
 
 The share card and the touch icon are generated, not hand-drawn:

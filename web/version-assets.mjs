@@ -23,11 +23,15 @@ import path from 'node:path';
 
 /* What must move together into the versioned directory: the two files the HTML
    names, and everything they import relative to themselves. */
-const ASSETS = ['app.css', 'app.js', 'keret-runtime.js', 'canvas-sharp.js', 'zip.js'];
-const DIRS = ['vendor'];
+const ASSETS = ['app.css', 'app.js', 'keret-runtime.js', 'canvas-sharp.js', 'zip.js', 'landing.css', 'copy.js'];
+/* fonts/ is here because the stylesheets resolve url(fonts/...) against
+   themselves: a copy in v<stamp>/ needs its own. */
+const DIRS = ['vendor', 'fonts'];
 /* What the HTML references and this step rewrites. */
-const REFERENCED = ['app.css', 'app.js'];
-const PAGES = ['index.html', 'hosting.html', '404.html'];
+const REFERENCED = ['app.css', 'app.js', 'landing.css', 'copy.js'];
+/* index.html is the landing, app/index.html the builder it links to: the builder
+   sits one level down, so its asset URLs carry a ../ in front of the stamp. */
+const PAGES = ['index.html', 'app/index.html', 'hosting.html', '404.html'];
 
 const rel = (value) => String(value).replace(/^\.\//, '');
 const [dir = 'dist', version = ''] = process.argv.slice(2);
@@ -67,10 +71,11 @@ for (const page of PAGES) {
   if (html.includes(stamp + '/')) continue;
   // a page that already carries some other deploy's stamp is normalised first, so
   // this step is safe to run twice or after a different version
-  html = html.replace(/((?:href|src)=")v[^/"]+\/(app\.css|app\.js)(")/g, '$1$2$3');
+  const names = REFERENCED.map((n) => n.replace(/[.]/g, '\\.')).join('|');
+  html = html.replace(new RegExp('((?:href|src)=")(\\.\\./)?v[^/"]+/(' + names + ')(")', 'g'), '$1$2$3$4');
   for (const name of REFERENCED) {
-    const attribute = new RegExp('((?:href|src)=")' + name.replace('.', '\\.') + '(")', 'g');
-    html = html.replace(attribute, '$1' + stamp + '/' + name + '$2');
+    const attribute = new RegExp('((?:href|src)=")(\\.\\./)?' + name.replace('.', '\\.') + '(")', 'g');
+    html = html.replace(attribute, '$1$2' + stamp + '/' + name + '$3');
   }
   writeFileSync(file, html);
   rewritten += 1;
@@ -82,12 +87,12 @@ for (const page of PAGES) {
   const file = path.join(dir, page);
   if (!existsSync(file)) continue;
   const html = readFileSync(file, 'utf8');
-  for (const match of html.matchAll(/(?:href|src)="(v[^"]+)"/g)) {
-    if (!existsSync(path.join(dir, match[1]))) {
+  for (const match of html.matchAll(/(?:href|src)="((?:\.\.\/)?v[^"]+)"/g)) {
+    if (!existsSync(path.join(dir, path.dirname(page), match[1]))) {
       console.error('version-assets: ' + page + ' references ' + match[1] + ', which is not in ' + dir);
       process.exit(1);
     }
   }
 }
 
-console.log('version-assets: ' + ASSETS.length + ' files and ' + DIRS.length + ' directory under ' + stamp + '/, ' + rewritten + ' page(s) rewritten');
+console.log('version-assets: ' + ASSETS.length + ' files and ' + DIRS.length + ' directories under ' + stamp + '/, ' + rewritten + ' page(s) rewritten');

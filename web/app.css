@@ -17,6 +17,19 @@
  * the bottom bar never offers two equal choices.
  */
 
+/* Geist Mono is the face this page names, so it ships with it: the app, the
+   hosting guide and the 404 all read in the same type, from this domain, with
+   no request to anyone else. Same file and weight range the walls embed
+   (src/config.js). The builder declares the same family again from its bundle,
+   which carries all five faces for the typeface picker and the preview; both
+   declarations name the same bytes, so the only new thing is the fetch. */
+@font-face {
+  font-family: "Geist Mono";
+  src: url(fonts/GeistMonoVF.woff2) format("woff2");
+  font-weight: 100 900;
+  font-display: swap;
+}
+
 :root {
   --wall: #cfc8ba;
   --chrome: rgba(25, 22, 18, .62);
@@ -323,18 +336,13 @@ main {
   font-size: 0.8125rem;
   opacity: .8;
   text-align: center;
-  line-height: 1.9;
+  line-height: 1.7;
 }
 .foot a { color: inherit; }
 .foot b { font-weight: 600; }
-.foot .gh {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-/* the mark needs an explicit size: an SVG with none fills the column */
-.foot .gh svg { width: 15px; height: 15px; fill: currentColor; }
+.foot .gh { white-space: nowrap; }
+/* the credit line, in the same clothes as the landing's footer */
+.foot.credit .heart { width: 10px; height: 10px; vertical-align: -1px; color: var(--accent); }
 
 /* --- the caption lines under the frame --------------------------------- */
 
@@ -588,4 +596,117 @@ a {
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
+}
+
+/* --- the landing, under the builder ------------------------------------ */
+/* The builder is the first screen, so the page that explains it scrolls under
+   it. Same palette, same type, one column: nothing here may look like a second
+   design. Body copy takes --note, never --cap: --cap is the caption ink for text
+   sitting on the mat and measures 1.67:1 on the wall. */
+
+header { flex-direction: column; align-items: center; }
+header .tagline {
+  max-width: 32rem;
+  margin-top: 10px;
+  color: var(--note);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.landing { gap: 34px; margin-top: 38px; }
+.landing h2 {
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(25, 22, 18, .14);
+  color: var(--note);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.landing p { margin-top: 10px; color: var(--note); font-size: 0.875rem; }
+.landing code {
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(25, 22, 18, .08);
+  font-size: 0.8125rem;
+}
+
+/* the six things it does: a grid, because six rows of name-and-line reads as a
+   spec sheet rather than a page */
+.landing .cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px 20px;
+  margin-top: 14px;
+  list-style: none;
+}
+.landing .cards li { display: grid; gap: 4px; align-content: start; }
+.landing .cards h3 { color: var(--note); font-size: 0.8125rem; font-weight: 600; }
+.landing .cards p { margin: 0; font-size: 0.8125rem; line-height: 1.5; }
+
+.landing .steps {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+  padding-left: 1.4rem;
+  color: var(--note);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+.landing .steps li::marker { color: var(--accent); font-weight: 600; }
+.landing .steps strong { color: var(--note); font-weight: 600; }
+
+/* the questions are native details: no script, and the answer is still the first
+   thing a crawler reads */
+.landing .faq details {
+  margin-top: 8px;
+  border-bottom: 1px solid rgba(25, 22, 18, .1);
+  padding-bottom: 2px;
+}
+.landing .faq summary {
+  padding: 8px 0;
+  color: var(--note);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.landing .faq summary::marker { color: var(--accent); }
+.landing .faq details p { margin: 0 0 10px; font-size: 0.8125rem; line-height: 1.6; }
+
+.landing .cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.landing .cta .btn { text-decoration: none; }
+.landing .cta-link {
+  color: var(--note);
+  font-size: 0.8125rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.landing .cta-link:hover { color: var(--ink); }
+
+.landing-foot {
+  padding-top: 18px;
+  border-top: 1px solid rgba(25, 22, 18, .14);
+  color: var(--note);
+  font-size: 0.75rem;
+  line-height: 1.9;
+  text-align: center;
+}
+.landing-foot p { margin: 0; font-size: 0.75rem; }
+.landing-foot a { color: var(--note); text-decoration: underline; text-underline-offset: 3px; }
+.landing-foot a:hover { color: var(--ink); }
+
+@media (prefers-color-scheme: dark) {
+  .landing h2, .landing-foot { border-color: rgba(255, 255, 255, .12); }
+  .landing .faq details { border-bottom-color: rgba(255, 255, 255, .1); }
+  .landing code { background: rgba(255, 255, 255, .1); }
+}
+@media (max-width: 540px) {
+  .landing .cards { grid-template-columns: 1fr; }
 }

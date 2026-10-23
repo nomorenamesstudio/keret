@@ -5,6 +5,10 @@
     <changefreq>monthly</changefreq>
   </url>
   <url>
+    <loc>https://keret.nomorenames.studio/app/</loc>
+    <changefreq>monthly</changefreq>
+  </url>
+  <url>
     <loc>https://keret.nomorenames.studio/hosting</loc>
     <changefreq>monthly</changefreq>
   </url>

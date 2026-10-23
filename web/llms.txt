@@ -1,0 +1,13 @@
+# keret
+
+> A free, open-source photo wall builder: a folder of photographs becomes one static page you pan and zoom, every frame captioned from the file's own EXIF. No account, nothing uploaded, no AI in the runtime, MIT licensed.
+
+## Core pages
+
+- [Landing page](https://keret.nomorenames.studio/): What keret is, what a wall looks like, and the FAQ
+- [The builder](https://keret.nomorenames.studio/app/): Drop a folder in a browser tab, get the finished site as a zip — nothing is uploaded
+- [A live wall](https://nomorenamesstudio.github.io/keret/): 105 photographs, every frame captioned from its own EXIF
+- [GitHub Repo](https://github.com/nomorenamesstudio/keret): Source code, issues, the CLI
+- [Hosting guide](https://keret.nomorenames.studio/hosting): GitHub Pages, Cloudflare Pages, Netlify or your own nginx, custom domain included
+- [FAQ / Why It Exists](https://keret.nomorenames.studio/#why): Origin story, privacy, free vs paid
+- [License](https://github.com/nomorenamesstudio/keret/blob/main/LICENSE): MIT
