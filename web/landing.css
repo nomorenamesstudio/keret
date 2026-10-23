@@ -484,7 +484,9 @@ h3 { color: var(--note); font-size: 1rem; font-weight: 600; }
   .why { grid-template-columns: minmax(0, 1fr); gap: 24px; }
   .faq .section-head { position: static; }
   .why-art { width: 160px; order: -1; }
-  .way-copy { max-width: none; }
+  /* one column: nothing sticks. A stuck block without a background paints over
+     the artefact that scrolls behind it - measured on a phone, 2026-10-23. */
+  .way-copy { max-width: none; position: static; }
   .split-aside { position: static; max-width: none; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero { padding-top: 34px; grid-template-columns: minmax(0, 1fr); }
