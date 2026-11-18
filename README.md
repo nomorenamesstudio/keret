@@ -38,7 +38,18 @@ Named after the Hungarian word for *frame*.
 | **Yours, credited** | A "Powered by Keret" line you can rewrite or remove, and a photographer card for your own contact details |
 | **Readable without JavaScript** | Without JS you get a plain list of the photographs; the wall is the enhancement |
 
-## Quick start
+## Two ways to use it
+
+### In the browser
+
+Open **[keret.app](https://keret.nomorenames.studio/)**, drop a folder of photographs
+into the tab, fill in the wall's title and your details, and download the finished
+site as a zip. Everything happens in the tab — nothing is uploaded. Unzip it and put
+the folder on any static host ([docs/HOSTING.md](docs/HOSTING.md) walks through four).
+
+### From the command line
+
+For big folders, or a wall you rebuild whenever you add photographs:
 
 ```sh
 git clone https://github.com/nomorenamesstudio/keret.git
@@ -50,80 +61,46 @@ node ~/Code/keret/gen.js            # writes ./dist
 npx --yes serve dist                # or any static file server
 ```
 
-1. The first run on a terminal asks four questions (title, description, site URL,
-   photographer) and writes `wall.config.json`; every later run offers to keep it.
-2. `--yes` never asks, `--setup` brings the questions back, `--check` lays the
-   wall out and writes nothing. Every flag is in [docs/API.md](docs/API.md).
-3. No terminal at all? [keret.app](https://keret.nomorenames.studio/) runs the same
-   build in a browser tab and hands you the finished site as a zip.
+1. The first run asks four questions (title, description, site URL, photographer)
+   and writes `wall.config.json`; every later run offers to keep it.
+2. `--yes` never asks, `--setup` brings the questions back, `--check` lays the wall
+   out and writes nothing. Every flag is in [docs/API.md](docs/API.md).
+3. You need Node 18.17 or newer and `sharp`. Sharp isn't optional: it strips the
+   metadata and bakes in the photo's orientation, and the build refuses to publish
+   originals without it.
 
-## How it works
-
-```
-photos/            your originals (never written to)
-wall.config.json   optional: identity, captions, wall geometry, image sizes, font
-author.json        optional: the photographer card
-        |
-        v
-   node gen.js     layout -> re-encode -> page -> stamp
-        |
-        v
-dist/              index.html, photos/, fonts/, og.jpg, robots.txt, sitemap.xml
-```
-
-Layout is computed from the file headers alone, so every frame matches how a
-browser renders that photo; the engine then draws one canvas and culls whatever is
-off screen. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) has the pipeline in full.
+The two are the same build: a zip from the browser carries `wall.config.json` and
+`author.json` with it, so you can unzip it, add photographs and run `node gen.js` to
+carry on from the command line. The only difference is the image encoder — the
+browser uses its own, so the files aren't byte-identical.
 
 ![The browser builder finishing a wall: framed prints, the wall's statistics, and the download button](docs/assets/app-window.png)
 
-The browser builder is not a fork: `web/vendor/keret-core.js` is generated from
-`src/`, and the zip carries `wall.config.json` and `author.json` back with it, so
-unzip, add photographs and run `node gen.js` to get the same wall from the command
-line. The one trade-off is the encoder — the browser's own, so its output is not
-byte-identical to the CLI's.
+## How it works
+
+Keret reads your photographs (it never writes to them), works out each frame from the
+image size alone so it matches how a browser shows that photo, re-encodes a published
+copy without its metadata, and writes one static page plus the images, fonts and
+crawler files. The page draws the whole wall on one canvas and skips whatever is off
+screen. The full pipeline is in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## FAQ
 
-### Is Keret really free?
+### Is keret really free?
 
-Yes. MIT licence, no account, no paid tier, no upsell. The only cost is hosting,
-and a static wall runs on a free tier.
+Yes. MIT license, no account, no paid tier and no upsell. The only cost is hosting, and static files run on a free tier of GitHub Pages, Cloudflare Pages or Netlify.
 
 ### Do my photographs get uploaded?
 
-No. The browser builder decodes them in the tab and builds the zip there; the CLI
-works on your own machine and writes a local folder.
+No. The builder decodes them in the browser tab and builds the zip there, and the command line does the same work on your machine. There is nowhere to send them.
 
-### Can I self-host the wall?
+### Where can I host the wall?
 
-Yes, and there is no server to host. The output is static files: commit them to
-GitHub Pages, drop the folder on Cloudflare Pages or Netlify, or `rsync` it to
-your own box. [docs/HOSTING.md](docs/HOSTING.md) walks through all four, custom
-domain included.
+Any static host: GitHub Pages, Cloudflare Pages, Netlify or your own nginx. The [hosting guide](docs/HOSTING.md) covers all four, custom domain included.
 
-### What do I need to run it?
+### Does the published page give away location data?
 
-Node 18.17 or newer and one dependency, `sharp`. Sharp is not optional: it strips
-the metadata and bakes in EXIF orientation, and the build refuses to publish
-originals without it.
-
-### What happens to the GPS in my photos?
-
-It never reaches the page. Published copies are re-encoded without any metadata,
-and the GPS block in the source file is never parsed at all.
-
-### Is there AI in it?
-
-Not in the runtime: no model, no API key, no token cost: it is a static page. Keret
-is hand-written and AI-enhanced — the specification, design and review are mine,
-the code was written with DeepSeek V4.1 Flash in DeepSeek Harness, and
-[docs/CHANGELOG.md](docs/CHANGELOG.md) dates every change.
-
-### Who built it?
-
-K, under [No More Names Studio](https://nomorenames.studio). MIT licensed, source
-on GitHub, issues and pull requests welcome.
+No. Every published copy is re-encoded without EXIF, so GPS coordinates cannot ship — the wall carries the caption text and nothing else.
 
 ## The demo wall
 
@@ -163,5 +140,4 @@ MIT. See [LICENSE](LICENSE).
 
 [![Star this repo](https://img.shields.io/badge/star-this%20repo-e23c30?style=for-the-badge&logo=github)](https://github.com/nomorenamesstudio/keret)
 
-Built by [K](https://nomorenames.studio) | [keret.app](https://keret.nomorenames.studio/) ·
-[No More Names Studio](https://nomorenames.studio)
+Made with ♥ by [No More Names Studio](https://nomorenames.studio)

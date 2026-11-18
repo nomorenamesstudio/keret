@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-11-18 - a README that leads with the browser
+
+`[Fix]` **The README matches the landing page.** It now opens "Two ways to use it" with the
+browser builder and keeps the command line as the second path, its FAQ is the landing
+page's FAQ word for word, and the AI and "who built it" questions are gone (the credit sits
+in the footer). "How it works" is plain sentences; the pipeline stays in ARCHITECTURE.
+
 ## 2026-10-22 - a front page, and the builder behind it
 
 `[Feature]` **keret has a landing page.** Without one, the front door was the app itself: a
